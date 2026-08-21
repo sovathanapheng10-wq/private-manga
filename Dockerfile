@@ -1,10 +1,19 @@
-FROM ghcr.io/suwayomi/suwayomi-server:latest
+FROM python:3.11-slim
 
-# Force the application to bind directly to port 10000 (Render's absolute default web port)
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc python3-dev libpq-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Clone and set up the clean manga reader interface
+RUN pip install --no-cache-dir manga-adventure gunicorn
+
+# Initialize the internal tracking database
+RUN manga-adventure migrate
+
 EXPOSE 10000
-ENV SUWAYOMI_SERVER_PORT=10000
-ENV SUWAYOMI_SERVER_IP=0.0.0.0
 
-# Pre-inject the extension repository directly into the server start script
-RUN mkdir -p /home/suwayomi/.local/share/Suwayomi-Server/ && \
-    echo '{"extensionRepos": ["https://githubusercontent.com"]}' > /home/suwayomi/.local/share/Suwayomi-Server/server_config.json
+# Start the web script natively on Render's port standard
+CMD ["gunicorn", "manga_adventure.wsgi:application", "--bind", "0.0.0.0:10000"]

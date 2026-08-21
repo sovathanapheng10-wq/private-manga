@@ -1,9 +1,10 @@
 FROM ghcr.io/suwayomi/suwayomi-server:latest
 
-EXPOSE 4567
-ENV SUWAYOMI_SERVER_PORT=4567
+# Force the application to bind directly to port 10000 (Render's absolute default web port)
+EXPOSE 10000
+ENV SUWAYOMI_SERVER_PORT=10000
 ENV SUWAYOMI_SERVER_IP=0.0.0.0
 
-# This forces the website to pre-load the extension list from the backend server folder
+# Pre-inject the extension repository directly into the server start script
 RUN mkdir -p /home/suwayomi/.local/share/Suwayomi-Server/ && \
     echo '{"extensionRepos": ["https://githubusercontent.com"]}' > /home/suwayomi/.local/share/Suwayomi-Server/server_config.json
